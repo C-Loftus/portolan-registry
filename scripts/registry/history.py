@@ -14,9 +14,11 @@ import subprocess  # nosec B404
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import yaml
 
+from registry.entries import deprecation
 from registry.report import log
 
 
@@ -91,13 +93,54 @@ def _entry_url(text: str | None) -> str | None:
     return url if isinstance(url, str) and url else None
 
 
+def entry_at(ref: str, path: Path) -> dict[str, Any] | None:
+    """Return the entry at `path` from Git revision `ref`.
+
+    Return `None` if the entry is missing, contains invalid YAML, is not a
+    mapping, or cannot be read from Git.
+    """
+    # `./` makes the path relative to the entry's directory, where Git runs.
+    text = _git(path.parent, "show", f"{ref}:./{path.name}")
+    try:
+        entry = yaml.safe_load(text) if text else None
+    except yaml.YAMLError:
+        return None
+    return entry if isinstance(entry, dict) else None
+
+
 def url_at(ref: str, path: Path) -> str | None:
     """Return the URL that the entry at `path` held at `ref`.
 
     If the entry did not exist at `ref`, or Git cannot read it, return `None`.
     """
-    # `./` makes the path relative to the entry's directory, where Git runs.
-    return _entry_url(_git(path.parent, "show", f"{ref}:./{path.name}"))
+    url = (entry_at(ref, path) or {}).get("url")
+    return url if isinstance(url, str) and url else None
+
+
+def deprecated_since(path: Path) -> str | None:
+    """Return the RFC 3339 timestamp of the commit that deprecated `path`.
+
+    Parse the entry at each commit that changed the file, newest first. The
+    date is the oldest commit of the newest unbroken run of commits where
+    the entry is deprecated. A text match on the `deprecated:` line is not
+    enough: a comment on the line, or a quoted key, would move or lose the
+    date without a change of value.
+
+    Walk with `--first-parent`, so the date is when the deprecation reached
+    the branch, not when a side branch drafted it.
+
+    If the newest commit does not deprecate the entry, or Git cannot answer,
+    return `None`. The caller keeps the previously published date, as with
+    `first_registered`.
+    """
+    out = _git(path.parent, "log", "--first-parent", "--format=%H %aI", "--", path.name)
+    since = None
+    for line in (out or "").splitlines():
+        commit, _, stamp = line.strip().partition(" ")
+        if not commit or not deprecation(entry_at(commit, path) or {}).deprecated:
+            break
+        since = stamp
+    return _canonical(since) if since else None
 
 
 @dataclass(frozen=True)

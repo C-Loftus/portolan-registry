@@ -34,18 +34,18 @@ After your submission passes validation and a maintainer merges it, the registry
 
 Your catalog's registry ID is its filename without `.yaml`, such as `city-of-example-parcels`. Use lowercase letters and digits, with single hyphens between groups. Once a maintainer merges your submission, you cannot change the ID or reuse it for another catalog. The registry reads the title from your catalog, so the ID does not need to match the title.
 
-## Remove a catalog
+## Remove or deprecate a catalog
 
-You can request a catalog's removal even if someone else registered it.
+You can request removal or deprecation even if someone else registered the catalog.
 
-1. Open a [catalog removal request](https://github.com/portolan-sdi/portolan-registry/issues/new?template=catalog-removal.yml). Include the catalog ID, your relationship to the catalog, and your reason for requesting removal.
-2. Open a pull request that deletes `catalogs/<id>.yaml` and links to your removal request.
+1. Open a [removal or deprecation request](https://github.com/portolan-sdi/portolan-registry/issues/new?template=catalog-removal.yml). Include the catalog ID, your relationship to the catalog, and your reason.
+2. Open a pull request that links to your request. Delete `catalogs/<id>.yaml` to remove the listing, or add `deprecated: true` to mark it as deprecated.
 
-The registry emails your request to the person who registered the catalog. If someone else registered it, a maintainer waits 14 days for that person to object before approving removal. Removals for spam or legal reasons do not require this waiting period. The maintainer reviews your request and may ask you to confirm your relationship to the publisher. If the maintainer accepts your request, they approve and merge the pull request.
+Deprecated catalogs stay listed and can point to a replacement. See the [entry schema](./schema/entry.schema.json) for optional fields.
 
-After the merge, the next registry update removes the catalog from [`exports/catalogs.json`](./exports/catalogs.json) and [`exports/coverage-bboxes.json`](./exports/coverage-bboxes.json). The export's Git history records the removal. If you want to register the same catalog again, use the same ID and URL and get a maintainer's approval. The registry rejects that URL under any other ID. You cannot reuse the ID for another catalog.
+The registry emails the person who registered the catalog, and a maintainer reviews your request. If someone else registered it, they have 14 days to object, except for requests involving spam or legal concerns.
 
-If the registry cannot fetch a registered catalog, the nightly validation check marks it `stale` and emails the person who registered it. If the catalog remains unreachable for 30 days, the check changes its status to `removed`. The registry keeps its link in the export with that status and keeps its entry file in `catalogs/`.
+Nightly checks mark unreachable catalogs `stale`, then `removed` after 30 days without recovery. Deprecated catalogs also fail on validation errors. These status changes preserve entry files and export links. Nightly checks skip removed catalogs. To restore one, update its entry file in a pull request. Its status returns to `valid` when it passes validation.
 
 ## Report a bug
 
