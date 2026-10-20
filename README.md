@@ -32,6 +32,21 @@ New catalogs must pass deterministic validation before they enter the registry. 
 
 After your submission passes validation and a maintainer merges it, the registry publishes its metadata in [`exports/catalogs.json`](./exports/catalogs.json). Your catalog then appears on the registry page. Scheduled checks revisit registered catalogs and notify submitters about failures.
 
+Your catalog's registry ID is its filename without `.yaml`, such as `city-of-example-parcels`. Use lowercase letters and digits, with single hyphens between groups. Once a maintainer merges your submission, you cannot change the ID or reuse it for another catalog. The registry reads the title from your catalog, so the ID does not need to match the title.
+
+## Remove a catalog
+
+You can request a catalog's removal even if someone else registered it.
+
+1. Open a [catalog removal request](https://github.com/portolan-sdi/portolan-registry/issues/new?template=catalog-removal.yml). Include the catalog ID, your relationship to the catalog, and your reason for requesting removal.
+2. Open a pull request that deletes `catalogs/<id>.yaml` and links to your removal request.
+
+The registry emails your request to the person who registered the catalog. If someone else registered it, a maintainer waits 14 days for that person to object before approving removal. Removals for spam or legal reasons do not require this waiting period. The maintainer reviews your request and may ask you to confirm your relationship to the publisher. If the maintainer accepts your request, they approve and merge the pull request.
+
+After the merge, the next registry update removes the catalog from [`exports/catalogs.json`](./exports/catalogs.json) and [`exports/coverage-bboxes.json`](./exports/coverage-bboxes.json). The export's Git history records the removal. If you want to register the same catalog again, use the same ID and URL and get a maintainer's approval. The registry rejects that URL under any other ID. You cannot reuse the ID for another catalog.
+
+If the registry cannot fetch a registered catalog, the nightly validation check marks it `stale` and emails the person who registered it. If the catalog remains unreachable for 30 days, the check changes its status to `removed`. The registry keeps its link in the export with that status and keeps its entry file in `catalogs/`.
+
 ## Report a bug
 
 For registry problems, open a [bug report](https://github.com/portolan-sdi/portolan-registry/issues/new?template=bug_report.yml). Include the catalog URL, what you expected, and the steps and output that show the failure.

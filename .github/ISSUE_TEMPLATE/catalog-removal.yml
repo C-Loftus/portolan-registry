@@ -1,0 +1,72 @@
+name: Catalog removal request
+description: Request a catalog's removal from the registry
+# The catalog-removal label triggers an email to the submitter through
+# .github/workflows/notify-feedback.yml.
+labels: [catalog-removal]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        You can request a catalog's removal even if someone else registered
+        it. The registry emails your request to the person who registered the
+        catalog, and a maintainer reviews it. If someone else registered the
+        catalog, the maintainer waits 14 days for that person to object before
+        approving removal. Removals for spam or legal reasons do not require
+        this waiting period. Your request and GitHub username are public.
+        After removal, no other catalog can use the ID.
+  # notify_feedback.py reads the answers under these headings. Keep the
+  # labels "Catalog ID", "Relationship", and "Why".
+  - type: input
+    id: catalog-id
+    attributes:
+      label: Catalog ID
+      description: >-
+        Enter the catalog's filename in `catalogs/` without `.yaml`.
+        You can also find the ID in the `portolan_registry:id` field of the
+        catalog's link in the
+        [JSON registry export](https://raw.githubusercontent.com/portolan-sdi/portolan-registry/refs/heads/main/exports/catalogs.json).
+      placeholder: geoconnex-geoparquet
+    validations:
+      required: true
+  - type: dropdown
+    id: relationship
+    attributes:
+      label: Relationship
+      description: Select your relationship to the catalog. A maintainer may ask you to confirm it.
+      options:
+        - I registered this catalog
+        - I work for the publisher, and someone else registered it
+        - I maintain this registry
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: >-
+        Explain why you want to remove the catalog. For example, the
+        publisher may have registered a replacement catalog.
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact address
+      description: >-
+        If you want a maintainer to contact you outside GitHub, enter an
+        email address. This address is public. If you leave this field blank,
+        the maintainer can contact you through this issue.
+    validations:
+      required: false
+  - type: dropdown
+    id: url-online
+    attributes:
+      label: Will the catalog remain online?
+      description: Indicate whether the catalog's URL will remain accessible after removal from the registry. This field is optional.
+      options:
+        - "Yes"
+        - "No"
+        - I do not know
+    validations:
+      required: false
